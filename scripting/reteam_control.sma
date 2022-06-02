@@ -1,7 +1,7 @@
 #include <amxmodx>
 #include <reapi>
 
-new const PLUGIN_VERSION[] = "1.1.2"
+new const PLUGIN_VERSION[] = "1.1.3"
 
 new TeamName:g_iPlayerLastTeam[MAX_CLIENTS + 1]
 new Float:g_fPlayerLastChooseTime[MAX_CLIENTS + 1]
@@ -213,7 +213,7 @@ public TransferTo(id, AnyTeam)
 		{
 			if (g_bSpectator[id] || g_bSpectator[id] == false && get_member(id, m_iTeam) == TEAM_SPECTATOR)
 			{
-				if (g_iPlayerLastTeam[id] == TEAM_UNASSIGNED && get_member(id, m_iTeam) == TEAM_SPECTATOR)
+				if (Is_Player_Unassign(id))
 				{
 					iTeam = rg_get_join_team_priority()
 
@@ -245,7 +245,7 @@ public TransferTo(id, AnyTeam)
 		}
 		case TEAM_SWAP:
 		{
-			if (get_member(id, m_iTeam) != TEAM_SPECTATOR || g_iPlayerLastTeam[id] == TEAM_UNASSIGNED && get_member(id, m_iTeam) == TEAM_SPECTATOR)
+			if (get_member(id, m_iTeam) != TEAM_SPECTATOR || Is_Player_Unassign(id))
 			{
 				switch (g_iPlayerLastTeam[id] = get_member(id, m_iTeam))
 				{
@@ -412,7 +412,7 @@ public Handle_Team_Menu(const id, const iKey)
 			new iDestination_TeamJoin = (g_iMenuOption[id] % 3)
 
 			new TeamName:iTeam
-			if (g_iPlayerLastTeam[iTarget] == TEAM_UNASSIGNED && get_member(iTarget, m_iTeam) == TEAM_SPECTATOR)
+			if (Is_Player_Unassign(iTarget))
 			{
 				switch (iDestination_TeamJoin)
 				{
@@ -443,7 +443,7 @@ public Handle_Team_Menu(const id, const iKey)
 						if (iDestination_TeamJoin == 2)
 							user_kill(iTarget)
 
-						if (g_iPlayerLastTeam[iTarget] == TEAM_UNASSIGNED && get_member(iTarget, m_iTeam) == TEAM_SPECTATOR)
+						if (Is_Player_Unassign(iTarget))
 							rg_join_team(iTarget, iTeam)
 
 						rg_set_user_team(iTarget, iDestination_TeamJoin + 1)
@@ -454,7 +454,7 @@ public Handle_Team_Menu(const id, const iKey)
 					if (is_user_alive(iTarget))
 						user_kill(iTarget)
 
-					if (g_iPlayerLastTeam[iTarget] == TEAM_UNASSIGNED && get_member(iTarget, m_iTeam) == TEAM_SPECTATOR)
+					if (Is_Player_Unassign(iTarget))
 						rg_join_team(iTarget, iTeam)
 
 					rg_set_user_team(iTarget, iDestination_TeamJoin + 1)
@@ -466,6 +466,14 @@ public Handle_Team_Menu(const id, const iKey)
 		}
 	}
 	return PLUGIN_HANDLED
+}
+
+bool:Is_Player_Unassign(id)
+{
+	if (g_iPlayerLastTeam[id] == TEAM_UNASSIGNED && get_member(id, m_iTeam) == TEAM_SPECTATOR)
+		return true
+	else
+		return false
 }
 
 bool:Check_Access(id, iUserFlag)
