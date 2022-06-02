@@ -3,6 +3,9 @@
 
 new const PLUGIN_VERSION[] = "1.1.3"
 
+const MAX_FLAG_LENGTH = 2
+const MAX_PREFIX_LENGTH = 32
+
 new TeamName:g_iPlayerLastTeam[MAX_CLIENTS + 1]
 new Float:g_fPlayerLastChooseTime[MAX_CLIENTS + 1]
 new bool:g_bSpectator[MAX_CLIENTS + 1], bool:g_bWasPlayerAlive[MAX_CLIENTS + 1]
@@ -16,11 +19,11 @@ enum
 
 enum eAllCvars
 {
-	GOSPEC_FLAG[2],
-	CHANGE_TEAM_FLAG[2],
-	ADMIN_TEAM_FLAG_CMD[2],
+	GOSPEC_FLAG[MAX_FLAG_LENGTH],
+	CHANGE_TEAM_FLAG[MAX_FLAG_LENGTH],
+	ADMIN_TEAM_FLAG_CMD[MAX_FLAG_LENGTH],
 	AUTO_RESPAWN,
-	CHAT_PREFIX[32]
+	CHAT_PREFIX[MAX_PREFIX_LENGTH]
 }
 enum eFlags
 {
@@ -39,7 +42,6 @@ new g_iUserID[MAX_CLIENTS + 1][MAX_CLIENTS + 1]
 new g_bSilent[MAX_CLIENTS + 1]
 
 new const szTeamNames[3][] = { "TERRORIST", "CT", "SPECTATOR" }
-
 
 public plugin_init()
 {
@@ -74,8 +76,6 @@ public plugin_init()
 
 	register_clcmd("amx_teammenu", "Admin_TeamControlMenu", _, "- displays team menu")
 	register_menucmd(register_menuid("admin_team_menu"), 1023, "Handle_Team_Menu")
-
-	
 }
 
 public OnConfigsExecuted()
@@ -83,8 +83,6 @@ public OnConfigsExecuted()
 	g_eFlags[SPEC_FLAG] = g_eCvars[GOSPEC_FLAG] == EOS ? ADMIN_ALL : read_flags(g_eCvars[GOSPEC_FLAG])
 	g_eFlags[CHANGE_FLAG] = g_eCvars[CHANGE_TEAM_FLAG] == EOS ? ADMIN_ALL : read_flags(g_eCvars[CHANGE_TEAM_FLAG])
 	g_eFlags[ADMIN_FLAG_CMD] = g_eCvars[ADMIN_TEAM_FLAG_CMD] == EOS ? ADMIN_LEVEL_A : read_flags(g_eCvars[ADMIN_TEAM_FLAG_CMD])
-
-	
 
 	replace_all(g_eCvars[CHAT_PREFIX], charsmax(g_eCvars[CHAT_PREFIX]), "!g", "^4")
 	replace_all(g_eCvars[CHAT_PREFIX], charsmax(g_eCvars[CHAT_PREFIX]), "!t", "^3")
@@ -103,7 +101,7 @@ public client_putinserver(id)
 
 public Delayed_Info_Message(id)
 {
-	if (g_iPlayerLastTeam[id] == TEAM_UNASSIGNED && get_member(id, m_iTeam) == TEAM_SPECTATOR)
+	if (Is_Player_Unassign(id))
 	{
 		client_print_color(id, print_team_grey, "%s ^1You are ^3Spectator^1, type in ^4/team ^1or ^4/change ^1to join any ^4team^1.", g_eCvars[CHAT_PREFIX])
 		set_task(20.0, "Delayed_Info_Message", id)
