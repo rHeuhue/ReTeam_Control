@@ -411,6 +411,17 @@ public Handle_Team_Menu(const id, const iKey)
 
 			new iDestination_TeamJoin = (g_iMenuOption[id] % 3)
 
+			new TeamName:iTeam
+			if (g_iPlayerLastTeam[iTarget] == TEAM_UNASSIGNED && get_member(iTarget, m_iTeam) == TEAM_SPECTATOR)
+			{
+				switch (iDestination_TeamJoin)
+				{
+					case 0: iTeam = TEAM_TERRORIST
+					case 1: iTeam = TEAM_CT
+					case 2: iTeam = TEAM_SPECTATOR
+				}
+			}
+
 			new const PrintTypeColor[] =
 			{
 				print_team_red, print_team_blue, print_team_grey
@@ -432,6 +443,9 @@ public Handle_Team_Menu(const id, const iKey)
 						if (iDestination_TeamJoin == 2)
 							user_kill(iTarget)
 
+						if (g_iPlayerLastTeam[iTarget] == TEAM_UNASSIGNED && get_member(iTarget, m_iTeam) == TEAM_SPECTATOR)
+							rg_join_team(iTarget, iTeam)
+
 						rg_set_user_team(iTarget, iDestination_TeamJoin + 1)
 					}
 				}
@@ -439,6 +453,9 @@ public Handle_Team_Menu(const id, const iKey)
 				{
 					if (is_user_alive(iTarget))
 						user_kill(iTarget)
+
+					if (g_iPlayerLastTeam[iTarget] == TEAM_UNASSIGNED && get_member(iTarget, m_iTeam) == TEAM_SPECTATOR)
+						rg_join_team(iTarget, iTeam)
 
 					rg_set_user_team(iTarget, iDestination_TeamJoin + 1)
 				}
