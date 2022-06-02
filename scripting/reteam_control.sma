@@ -9,6 +9,7 @@ const MAX_PREFIX_LENGTH = 32
 new TeamName:g_iPlayerLastTeam[MAX_CLIENTS + 1]
 new Float:g_fPlayerLastChooseTime[MAX_CLIENTS + 1]
 new bool:g_bSpectator[MAX_CLIENTS + 1], bool:g_bWasPlayerAlive[MAX_CLIENTS + 1]
+new g_szMenuPrefix[MAX_PREFIX_LENGTH]
 
 const Float:COMMAND_TIMEOUT = 2.0
 
@@ -84,10 +85,17 @@ public OnConfigsExecuted()
 	g_eFlags[CHANGE_FLAG] = g_eCvars[CHANGE_TEAM_FLAG] == EOS ? ADMIN_ALL : read_flags(g_eCvars[CHANGE_TEAM_FLAG])
 	g_eFlags[ADMIN_FLAG_CMD] = g_eCvars[ADMIN_TEAM_FLAG_CMD] == EOS ? ADMIN_LEVEL_A : read_flags(g_eCvars[ADMIN_TEAM_FLAG_CMD])
 
+	copy(g_szMenuPrefix, charsmax(g_szMenuPrefix), g_eCvars[CHAT_PREFIX])
+
 	replace_all(g_eCvars[CHAT_PREFIX], charsmax(g_eCvars[CHAT_PREFIX]), "!g", "^4")
 	replace_all(g_eCvars[CHAT_PREFIX], charsmax(g_eCvars[CHAT_PREFIX]), "!t", "^3")
 	replace_all(g_eCvars[CHAT_PREFIX], charsmax(g_eCvars[CHAT_PREFIX]), "!n", "^1")
 	replace_all(g_eCvars[CHAT_PREFIX], charsmax(g_eCvars[CHAT_PREFIX]), "!y", "^1")
+
+	replace_all(g_szMenuPrefix, charsmax(g_szMenuPrefix), "!g", "\y")
+	replace_all(g_szMenuPrefix, charsmax(g_szMenuPrefix), "!t", "\r")
+	replace_all(g_szMenuPrefix, charsmax(g_szMenuPrefix), "!n", "\w")
+	replace_all(g_szMenuPrefix, charsmax(g_szMenuPrefix), "!y", "\w")
 }
 
 
@@ -293,7 +301,7 @@ public Delayed_Respawn(id)
 		rg_round_respawn(id)
 }
 
-// Admin Command stuff
+// [amx_teammenu] Replacement! No more bugs and shitty problems with changing teams
 public Admin_TeamControlMenu(id)
 {
 	if (!Check_Access(id, g_eFlags[ADMIN_FLAG_CMD]))
@@ -324,9 +332,9 @@ Toggle_Team_Menu(const id, iPos)
 		iEnd = iPlayersNum
 
 	if ((iPagesNum = iPlayersNum / PLAYERS_PER_PAGE + (iPlayersNum % PLAYERS_PER_PAGE ? 1 : 0)) == 1)
-		iLen = copy(szMenu, charsmax(szMenu), "\yChose player..^n^n")
+		iLen = copy(szMenu, charsmax(szMenu), fmt("%s^n\yChose player..^n^n", g_szMenuPrefix))
 	else
-		iLen = formatex(szMenu, charsmax(szMenu), "\yChose player.. \R\d(%d/%d)^n^n", iPos + 1, iPagesNum)
+		iLen = formatex(szMenu, charsmax(szMenu), "%s^n\yChose player.. \R\d(%d/%d)^n^n", g_szMenuPrefix, iPos + 1, iPagesNum)
 
 	while (iStart < iEnd)
 	{
@@ -360,8 +368,8 @@ Toggle_Team_Menu(const id, iPos)
 		}
 	}
 
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n^n\y7. \wTransfer Silent: \r%s", g_bSilent[id] ? "Yes" : "No")
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n\y8. \wTransfer to: \r%s", szTeamNames[g_iMenuOption[id] % 3])
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n^n^t^t\y7. \wTransfer Silent: %s", g_bSilent[id] ? "\yYes" : "\rNo")
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n^t^t\y8. \wTransfer to: \r%s", szTeamNames[g_iMenuOption[id] % 3])
 
 	if (iEnd < iPlayersNum)
 	{
@@ -409,17 +417,6 @@ public Handle_Team_Menu(const id, const iKey)
 
 			new iDestination_TeamJoin = (g_iMenuOption[id] % 3)
 
-			new TeamName:iTeam
-			if (Is_Player_Unassign(iTarget))
-			{
-				switch (iDestination_TeamJoin)
-				{
-					case 0: iTeam = TEAM_TERRORIST
-					case 1: iTeam = TEAM_CT
-					case 2: iTeam = TEAM_SPECTATOR
-				}
-			}
-
 			new const PrintTypeColor[] =
 			{
 				print_team_red, print_team_blue, print_team_grey
@@ -442,7 +439,7 @@ public Handle_Team_Menu(const id, const iKey)
 							user_kill(iTarget)
 
 						if (Is_Player_Unassign(iTarget))
-							rg_join_team(iTarget, iTeam)
+							rg_join_team(iTarget, iDestination_TeamJoin == 0 ? TEAM_TERRORIST : TEAM_CT)
 
 						rg_set_user_team(iTarget, iDestination_TeamJoin + 1)
 					}
@@ -453,7 +450,7 @@ public Handle_Team_Menu(const id, const iKey)
 						user_kill(iTarget)
 
 					if (Is_Player_Unassign(iTarget))
-						rg_join_team(iTarget, iTeam)
+						rg_join_team(iTarget, iDestination_TeamJoin == 0 ? TEAM_TERRORIST : TEAM_CT)
 
 					rg_set_user_team(iTarget, iDestination_TeamJoin + 1)
 				}
