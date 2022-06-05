@@ -278,11 +278,16 @@ public TransferTo(id, AnyTeam)
 
 				rg_set_user_team(id, .team = iTeam, .model = MODEL_AUTO)
 
-				if (!b_JoinTeam && is_user_alive(id))
+				if (!b_JoinTeam && is_user_alive(id) && g_eCvars[AUTO_RESPAWN])
 					rg_round_respawn(id)
 
 				if (g_eCvars[AUTO_RESPAWN])
 					set_task(0.1, "Delayed_Respawn", id)
+				else
+				{
+					user_silentkill(id)
+					set_member(id, m_iDeaths, get_member(id, m_iDeaths) - 1)
+				}
 
 				client_print_color(id, print_team_default, "%s ^1Switched to ^3%s^1.", g_eCvars[CHAT_PREFIX], iTeam == TEAM_CT ? "Counter-Terrorist" : "Terrorist")
 			}
