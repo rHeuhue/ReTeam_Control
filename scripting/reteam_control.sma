@@ -363,7 +363,7 @@ Toggle_Team_Menu(const id, iPos)
 		}
 		else if (Check_Access(id, g_eFlags[ADMIN_FLAG_CMD]))
 		{
-			if (i == id || Check_Access(i, g_eFlags[ADMIN_FLAG_CMD]) || Check_Access(i, ADMIN_RCON))
+			if (/*i == id || Check_Access(i, g_eFlags[ADMIN_FLAG_CMD]) ||*/ Check_Access(i, ADMIN_RCON))
 				iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\d%i. %n%s\R\d%s^n", ++b, i, i == id ? " \r*" : " \y*", szTeam)
 			else
 			{
